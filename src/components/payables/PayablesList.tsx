@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { PayableAccount, ClientSupplier, Category } from "@/types";
+import { useFinance } from "@/contexts/FinanceContext";
 import { usePayableListLogic } from "@/hooks/usePayableListLogic";
 import TableFilters from "@/components/common/TableFilters";
 import BulkActions from "@/components/common/BulkActions";
@@ -27,6 +28,8 @@ export default function PayablesList({
   onDelete,
   onFilteredDataChange
 }: PayablesListProps) {
+  const { accounts } = useFinance();
+  
   const {
     selectedIds,
     sortField,
@@ -80,6 +83,7 @@ export default function PayablesList({
         payables={filteredAndSortedPayables}
         suppliers={suppliers}
         expenseCategories={expenseCategories}
+        accounts={accounts}
         selectedIds={selectedIds}
         sortField={sortField}
         sortDirection={sortDirection}

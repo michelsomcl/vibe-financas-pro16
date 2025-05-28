@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { ReceivableAccount, ClientSupplier, Category } from "@/types";
+import { useFinance } from "@/contexts/FinanceContext";
 import { useReceivableListLogic } from "@/hooks/useReceivableListLogic";
 import TableFilters from "@/components/common/TableFilters";
 import BulkActions from "@/components/common/BulkActions";
@@ -27,6 +28,8 @@ export default function ReceivablesList({
   onDelete,
   onFilteredDataChange
 }: ReceivablesListProps) {
+  const { accounts } = useFinance();
+  
   const {
     selectedIds,
     sortField,
@@ -80,6 +83,7 @@ export default function ReceivablesList({
         receivables={filteredAndSortedReceivables}
         clients={clients}
         revenueCategories={revenueCategories}
+        accounts={accounts}
         selectedIds={selectedIds}
         sortField={sortField}
         sortDirection={sortDirection}

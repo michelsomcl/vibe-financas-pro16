@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ArrowUpDown } from "lucide-react";
-import { ReceivableAccount, ClientSupplier, Category } from "@/types";
+import { ReceivableAccount, ClientSupplier, Category, Account } from "@/types";
 import { formatCurrency, formatDate } from "@/utils/tableUtils";
 import ReceivableStatusBadge from "./ReceivableStatusBadge";
 import ReceivableActions from "./ReceivableActions";
@@ -21,6 +21,7 @@ interface ReceivableTableProps {
   receivables: ReceivableAccount[];
   clients: ClientSupplier[];
   revenueCategories: Category[];
+  accounts: Account[];
   selectedIds: string[];
   sortField: 'dueDate' | 'value' | 'client' | 'category';
   sortDirection: 'asc' | 'desc';
@@ -37,6 +38,7 @@ export default function ReceivableTable({
   receivables,
   clients,
   revenueCategories,
+  accounts,
   selectedIds,
   sortField,
   sortDirection,
@@ -56,6 +58,12 @@ export default function ReceivableTable({
   const getCategoryName = (categoryId: string) => {
     const category = revenueCategories.find(c => c.id === categoryId);
     return category?.name || 'Categoria não encontrada';
+  };
+
+  const getAccountName = (accountId?: string) => {
+    if (!accountId) return '-';
+    const account = accounts.find(a => a.id === accountId);
+    return account?.name || 'Conta não encontrada';
   };
 
   return (
@@ -94,6 +102,7 @@ export default function ReceivableTable({
           </TableHead>
           <TableHead>Status</TableHead>
           <TableHead>Tipo</TableHead>
+          <TableHead>Conta</TableHead>
           <TableHead>Ações</TableHead>
         </TableRow>
       </TableHeader>
@@ -124,6 +133,7 @@ export default function ReceivableTable({
                 {receivable.installmentType === 'recorrente' && 'Recorrente'}
               </Badge>
             </TableCell>
+            <TableCell>{getAccountName(receivable.accountId)}</TableCell>
             <TableCell>
               <ReceivableActions
                 receivable={receivable}

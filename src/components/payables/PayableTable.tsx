@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ArrowUpDown } from "lucide-react";
-import { PayableAccount, ClientSupplier, Category } from "@/types";
+import { PayableAccount, ClientSupplier, Category, Account } from "@/types";
 import { formatCurrency, formatDatePayables } from "@/utils/tableUtils";
 import PayableStatusBadge from "./PayableStatusBadge";
 import PayableActions from "./PayableActions";
@@ -21,6 +21,7 @@ interface PayableTableProps {
   payables: PayableAccount[];
   suppliers: ClientSupplier[];
   expenseCategories: Category[];
+  accounts: Account[];
   selectedIds: string[];
   sortField: 'dueDate' | 'value' | 'supplier' | 'category';
   sortDirection: 'asc' | 'desc';
@@ -37,6 +38,7 @@ export default function PayableTable({
   payables,
   suppliers,
   expenseCategories,
+  accounts,
   selectedIds,
   sortField,
   sortDirection,
@@ -56,6 +58,12 @@ export default function PayableTable({
   const getCategoryName = (categoryId: string) => {
     const category = expenseCategories.find(c => c.id === categoryId);
     return category?.name || 'Categoria não encontrada';
+  };
+
+  const getAccountName = (accountId?: string) => {
+    if (!accountId) return '-';
+    const account = accounts.find(a => a.id === accountId);
+    return account?.name || 'Conta não encontrada';
   };
 
   return (
@@ -94,6 +102,7 @@ export default function PayableTable({
           </TableHead>
           <TableHead>Status</TableHead>
           <TableHead>Tipo</TableHead>
+          <TableHead>Conta</TableHead>
           <TableHead>Ações</TableHead>
         </TableRow>
       </TableHeader>
@@ -122,6 +131,7 @@ export default function PayableTable({
                 {payable.installmentType === 'recorrente' && 'Recorrente'}
               </Badge>
             </TableCell>
+            <TableCell>{getAccountName(payable.accountId)}</TableCell>
             <TableCell>
               <PayableActions
                 payable={payable}
