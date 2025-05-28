@@ -141,6 +141,18 @@ export function usePayableListLogic({
     setFilters(prev => ({ ...prev, [key]: value }));
   };
 
+  const handleClearFilters = () => {
+    setFilters({
+      supplier: '',
+      category: '',
+      value: '',
+      dueDate: '',
+      status: '',
+      type: '',
+      account: ''
+    });
+  };
+
   return {
     selectedIds,
     sortField,
@@ -151,6 +163,7 @@ export function usePayableListLogic({
     handleSelectAll,
     handleSelectPayable,
     handleDeleteSelected,
-    handleFilterChange
+    handleFilterChange,
+    handleClearFilters
   };
 }

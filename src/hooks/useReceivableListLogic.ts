@@ -141,6 +141,18 @@ export function useReceivableListLogic({
     setFilters(prev => ({ ...prev, [key]: value }));
   };
 
+  const handleClearFilters = () => {
+    setFilters({
+      client: '',
+      category: '',
+      value: '',
+      dueDate: '',
+      status: '',
+      type: '',
+      account: ''
+    });
+  };
+
   return {
     selectedIds,
     sortField,
@@ -151,6 +163,7 @@ export function useReceivableListLogic({
     handleSelectAll,
     handleSelectReceivable,
     handleDeleteSelected,
-    handleFilterChange
+    handleFilterChange,
+    handleClearFilters
   };
 }

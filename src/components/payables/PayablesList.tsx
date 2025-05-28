@@ -40,7 +40,8 @@ export default function PayablesList({
     handleSelectAll,
     handleSelectPayable,
     handleDeleteSelected,
-    handleFilterChange
+    handleFilterChange,
+    handleClearFilters
   } = usePayableListLogic({
     payableAccounts,
     suppliers,
@@ -74,6 +75,7 @@ export default function PayablesList({
         filters={filters}
         filterConfigs={filterConfigs}
         onFilterChange={handleFilterChange}
+        onClearFilters={handleClearFilters}
       />
 
       <BulkActions

@@ -40,7 +40,8 @@ export default function ReceivablesList({
     handleSelectAll,
     handleSelectReceivable,
     handleDeleteSelected,
-    handleFilterChange
+    handleFilterChange,
+    handleClearFilters
   } = useReceivableListLogic({
     receivableAccounts,
     clients,
@@ -74,6 +75,7 @@ export default function ReceivablesList({
         filters={filters}
         filterConfigs={filterConfigs}
         onFilterChange={handleFilterChange}
+        onClearFilters={handleClearFilters}
       />
 
       <BulkActions
