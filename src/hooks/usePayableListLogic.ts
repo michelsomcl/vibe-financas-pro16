@@ -7,6 +7,7 @@ interface UsePayableListLogicProps {
   payableAccounts: PayableAccount[];
   suppliers: ClientSupplier[];
   expenseCategories: Category[];
+  accounts: any[];
   onDelete: (id: string) => void;
   onFilteredDataChange: (filteredData: PayableAccount[]) => void;
 }
@@ -15,6 +16,7 @@ export function usePayableListLogic({
   payableAccounts,
   suppliers,
   expenseCategories,
+  accounts,
   onDelete,
   onFilteredDataChange
 }: UsePayableListLogicProps) {
@@ -27,7 +29,8 @@ export function usePayableListLogic({
     value: '',
     dueDate: '',
     status: '',
-    type: ''
+    type: '',
+    account: ''
   });
 
   const getSupplierName = (supplierId: string) => {
@@ -38,6 +41,12 @@ export function usePayableListLogic({
   const getCategoryName = (categoryId: string) => {
     const category = expenseCategories.find(c => c.id === categoryId);
     return category?.name || 'Categoria não encontrada';
+  };
+
+  const getAccountName = (accountId?: string) => {
+    if (!accountId) return '-';
+    const account = accounts.find(a => a.id === accountId);
+    return account?.name || 'Conta não encontrada';
   };
 
   const getStatus = (payable: PayableAccount) => {
@@ -53,12 +62,14 @@ export function usePayableListLogic({
     let filtered = payableAccounts.filter(payable => {
       const supplierName = getSupplierName(payable.supplierId).toLowerCase();
       const categoryName = getCategoryName(payable.categoryId).toLowerCase();
+      const accountName = getAccountName(payable.accountId).toLowerCase();
       const status = getStatus(payable).toLowerCase();
       const type = payable.installmentType;
       
       return (
         supplierName.includes(filters.supplier.toLowerCase()) &&
         categoryName.includes(filters.category.toLowerCase()) &&
+        accountName.includes(filters.account.toLowerCase()) &&
         formatCurrency(payable.value).includes(filters.value) &&
         formatDatePayables(new Date(payable.dueDate)).includes(filters.dueDate) &&
         status.includes(filters.status.toLowerCase()) &&
@@ -87,7 +98,7 @@ export function usePayableListLogic({
     });
 
     return filtered;
-  }, [payableAccounts, filters, sortField, sortDirection, suppliers, expenseCategories]);
+  }, [payableAccounts, filters, sortField, sortDirection, suppliers, expenseCategories, accounts]);
 
   useEffect(() => {
     onFilteredDataChange(filteredAndSortedPayables);

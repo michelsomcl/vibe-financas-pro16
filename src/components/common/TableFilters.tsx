@@ -16,7 +16,7 @@ interface TableFiltersProps {
 
 export default function TableFilters({ filters, filterConfigs, onFilterChange }: TableFiltersProps) {
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2">
+    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-2">
       {filterConfigs.map((config) => (
         <Input
           key={config.key}

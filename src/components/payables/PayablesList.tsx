@@ -45,6 +45,7 @@ export default function PayablesList({
     payableAccounts,
     suppliers,
     expenseCategories,
+    accounts,
     onDelete,
     onFilteredDataChange
   });
@@ -55,7 +56,8 @@ export default function PayablesList({
     { key: 'value', placeholder: 'Filtrar por valor', value: filters.value },
     { key: 'dueDate', placeholder: 'Filtrar por vencimento', value: filters.dueDate },
     { key: 'status', placeholder: 'Filtrar por status', value: filters.status },
-    { key: 'type', placeholder: 'Filtrar por tipo', value: filters.type }
+    { key: 'type', placeholder: 'Filtrar por tipo', value: filters.type },
+    { key: 'account', placeholder: 'Filtrar por conta', value: filters.account }
   ];
 
   if (payableAccounts.length === 0) {

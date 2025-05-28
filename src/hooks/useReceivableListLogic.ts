@@ -7,6 +7,7 @@ interface UseReceivableListLogicProps {
   receivableAccounts: ReceivableAccount[];
   clients: ClientSupplier[];
   revenueCategories: Category[];
+  accounts: any[];
   onDelete: (id: string) => void;
   onFilteredDataChange: (filteredData: ReceivableAccount[]) => void;
 }
@@ -15,6 +16,7 @@ export function useReceivableListLogic({
   receivableAccounts,
   clients,
   revenueCategories,
+  accounts,
   onDelete,
   onFilteredDataChange
 }: UseReceivableListLogicProps) {
@@ -27,7 +29,8 @@ export function useReceivableListLogic({
     value: '',
     dueDate: '',
     status: '',
-    type: ''
+    type: '',
+    account: ''
   });
 
   const getClientName = (clientId: string) => {
@@ -38,6 +41,12 @@ export function useReceivableListLogic({
   const getCategoryName = (categoryId: string) => {
     const category = revenueCategories.find(c => c.id === categoryId);
     return category?.name || 'Categoria não encontrada';
+  };
+
+  const getAccountName = (accountId?: string) => {
+    if (!accountId) return '-';
+    const account = accounts.find(a => a.id === accountId);
+    return account?.name || 'Conta não encontrada';
   };
 
   const getStatus = (receivable: ReceivableAccount) => {
@@ -53,12 +62,14 @@ export function useReceivableListLogic({
     let filtered = receivableAccounts.filter(receivable => {
       const clientName = getClientName(receivable.clientId).toLowerCase();
       const categoryName = getCategoryName(receivable.categoryId).toLowerCase();
+      const accountName = getAccountName(receivable.accountId).toLowerCase();
       const status = getStatus(receivable).toLowerCase();
       const type = receivable.installmentType;
       
       return (
         clientName.includes(filters.client.toLowerCase()) &&
         categoryName.includes(filters.category.toLowerCase()) &&
+        accountName.includes(filters.account.toLowerCase()) &&
         formatCurrency(receivable.value).includes(filters.value) &&
         formatDate(receivable.dueDate).includes(filters.dueDate) &&
         status.includes(filters.status.toLowerCase()) &&
@@ -87,7 +98,7 @@ export function useReceivableListLogic({
     });
 
     return filtered;
-  }, [receivableAccounts, filters, sortField, sortDirection, clients, revenueCategories]);
+  }, [receivableAccounts, filters, sortField, sortDirection, clients, revenueCategories, accounts]);
 
   useEffect(() => {
     onFilteredDataChange(filteredAndSortedReceivables);
