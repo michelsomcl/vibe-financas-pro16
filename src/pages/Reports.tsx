@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -14,6 +15,7 @@ export default function Reports() {
   const { payableAccounts, receivableAccounts, categories, loading } = useFinance();
   const [dateRange, setDateRange] = useState<{ from?: Date; to?: Date }>({});
   const [activeReport, setActiveReport] = useState<'unpaid-expenses' | 'paid-expenses' | 'unreceived-revenues' | 'received-revenues'>('unpaid-expenses');
+  const [showDetailed, setShowDetailed] = useState(false);
   const printRef = useRef<HTMLDivElement>(null);
 
   const expenseCategories = categories.filter(cat => cat.type === 'despesa');
@@ -106,26 +108,59 @@ export default function Reports() {
   const handleSave = () => {
     // Preparar dados para Excel
     const excelData = [
-      [reportData.title],
+      [reportData.title + (showDetailed ? ' - Detalhado' : '')],
       [`Período: ${reportData.period}`],
       [`Gerado em: ${format(new Date(), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}`],
-      [], // linha vazia
-      ['Categoria', 'Quantidade', 'Total']
+      [] // linha vazia
     ];
 
-    // Adicionar dados das categorias
-    reportData.data.forEach(category => {
-      excelData.push([
-        category.categoryName,
-        category.count,
-        category.total
-      ]);
-    });
+    if (showDetailed) {
+      // Formato detalhado
+      reportData.data.forEach(category => {
+        excelData.push([]);
+        excelData.push([`CATEGORIA: ${category.categoryName}`]);
+        excelData.push(['Cliente/Fornecedor', 'Data', 'Observações', 'Valor']);
+        
+        category.items.forEach(item => {
+          const clientSupplierName = item.client?.name || item.supplier?.name || 'N/A';
+          let dateToShow = '';
+          
+          if (activeReport === 'paid-expenses' && item.paidDate) {
+            dateToShow = format(new Date(item.paidDate), 'dd/MM/yyyy');
+          } else if (activeReport === 'received-revenues' && item.receivedDate) {
+            dateToShow = format(new Date(item.receivedDate), 'dd/MM/yyyy');
+          } else {
+            dateToShow = format(new Date(item.dueDate), 'dd/MM/yyyy');
+          }
+          
+          excelData.push([
+            clientSupplierName,
+            dateToShow,
+            item.observations || '',
+            item.value
+          ]);
+        });
+        
+        excelData.push([`Subtotal - ${category.categoryName}`, '', '', category.total]);
+      });
+    } else {
+      // Formato resumido
+      excelData.push(['Categoria', 'Quantidade', 'Total']);
+      
+      reportData.data.forEach(category => {
+        excelData.push([
+          category.categoryName,
+          category.count,
+          category.total
+        ]);
+      });
+    }
 
     // Adicionar total geral
     excelData.push([
       'TOTAL GERAL',
-      reportData.data.reduce((sum, cat) => sum + cat.count, 0),
+      showDetailed ? '' : reportData.data.reduce((sum, cat) => sum + cat.count, 0),
+      showDetailed ? '' : '',
       reportData.grandTotal
     ]);
 
@@ -137,17 +172,26 @@ export default function Reports() {
     const range = XLSX.utils.decode_range(ws['!ref'] || 'A1');
     
     // Definir larguras das colunas
-    ws['!cols'] = [
-      { width: 30 }, // Categoria
-      { width: 15 }, // Quantidade
-      { width: 20 }  // Total
-    ];
+    if (showDetailed) {
+      ws['!cols'] = [
+        { width: 30 }, // Cliente/Fornecedor
+        { width: 15 }, // Data
+        { width: 40 }, // Observações
+        { width: 20 }  // Valor
+      ];
+    } else {
+      ws['!cols'] = [
+        { width: 30 }, // Categoria
+        { width: 15 }, // Quantidade
+        { width: 20 }  // Total
+      ];
+    }
 
     // Adicionar worksheet ao workbook
     XLSX.utils.book_append_sheet(wb, ws, 'Relatório');
 
     // Salvar arquivo
-    const fileName = `${reportData.title.replace(/\s+/g, '_')}_${format(new Date(), 'yyyy-MM-dd')}.xls`;
+    const fileName = `${reportData.title.replace(/\s+/g, '_')}_${showDetailed ? 'Detalhado_' : ''}${format(new Date(), 'yyyy-MM-dd')}.xls`;
     XLSX.writeFile(wb, fileName);
   };
 
@@ -185,12 +229,14 @@ export default function Reports() {
         onReportChange={setActiveReport}
         dateRange={dateRange}
         onDateRangeChange={setDateRange}
+        showDetailed={showDetailed}
+        onShowDetailedChange={setShowDetailed}
       />
 
       <Card>
         <CardContent className="p-0">
           <div ref={printRef}>
-            <ReportTable reportData={reportData} />
+            <ReportTable reportData={reportData} showDetailed={showDetailed} />
           </div>
         </CardContent>
       </Card>

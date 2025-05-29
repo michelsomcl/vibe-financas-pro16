@@ -4,6 +4,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { CalendarIcon, X } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -14,13 +16,17 @@ interface ReportFiltersProps {
   onReportChange: (report: 'unpaid-expenses' | 'paid-expenses' | 'unreceived-revenues' | 'received-revenues') => void;
   dateRange: { from?: Date; to?: Date };
   onDateRangeChange: (range: { from?: Date; to?: Date }) => void;
+  showDetailed: boolean;
+  onShowDetailedChange: (detailed: boolean) => void;
 }
 
 export default function ReportFilters({
   activeReport,
   onReportChange,
   dateRange,
-  onDateRangeChange
+  onDateRangeChange,
+  showDetailed,
+  onShowDetailedChange
 }: ReportFiltersProps) {
   const reportOptions = [
     { value: 'unpaid-expenses', label: 'Despesas a Pagar' },
@@ -52,6 +58,17 @@ export default function ReportFilters({
                 </Button>
               ))}
             </div>
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <Switch
+              id="detailed-report"
+              checked={showDetailed}
+              onCheckedChange={onShowDetailedChange}
+            />
+            <Label htmlFor="detailed-report" className="text-sm font-medium">
+              Relatório Detalhado (com todos os lançamentos)
+            </Label>
           </div>
 
           <div>
