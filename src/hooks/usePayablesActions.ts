@@ -10,7 +10,8 @@ export function usePayablesActions() {
     deletePayableAccount,
     addTransaction,
     deleteTransaction,
-    transactions
+    transactions,
+    payableAccounts
   } = useFinance();
 
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
@@ -20,7 +21,7 @@ export function usePayablesActions() {
   const handleDelete = async (id: string) => {
     if (confirm('Tem certeza que deseja excluir esta conta a pagar?')) {
       try {
-        const payable = await updatePayableAccount(id, {}); // Get payable first
+        const payable = payableAccounts.find(p => p.id === id);
         
         if (payable?.isPaid) {
           const relatedTransaction = transactions.find(
