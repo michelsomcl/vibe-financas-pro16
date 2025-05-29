@@ -5,6 +5,7 @@ import { formatCurrency } from "@/utils/formatCurrency";
 import { formatDate } from "@/utils/tableUtils";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { useFinance } from "@/contexts/FinanceContext";
 
 interface ReportTableProps {
   reportData: {
@@ -22,8 +23,13 @@ interface ReportTableProps {
 }
 
 export default function ReportTable({ reportData, showDetailed = false }: ReportTableProps) {
+  const { clientsSuppliers } = useFinance();
+
   const getClientSupplierName = (item: any) => {
-    return item.client?.name || item.supplier?.name || 'N/A';
+    const clientSupplier = clientsSuppliers.find(cs => 
+      cs.id === item.clientId || cs.id === item.supplierId
+    );
+    return clientSupplier?.name || 'N/A';
   };
 
   const getFormattedDate = (item: any, activeReport: string) => {
@@ -34,6 +40,15 @@ export default function ReportTable({ reportData, showDetailed = false }: Report
     } else {
       return formatDate(item.dueDate);
     }
+  };
+
+  // Função para ordenar itens por data de vencimento
+  const sortItemsByDueDate = (items: any[]) => {
+    return [...items].sort((a, b) => {
+      const dateA = new Date(a.dueDate);
+      const dateB = new Date(b.dueDate);
+      return dateA.getTime() - dateB.getTime();
+    });
   };
 
   return (
@@ -73,7 +88,7 @@ export default function ReportTable({ reportData, showDetailed = false }: Report
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {category.items.map((item, itemIndex) => (
+                      {sortItemsByDueDate(category.items).map((item, itemIndex) => (
                         <TableRow key={itemIndex}>
                           <TableCell>{getClientSupplierName(item)}</TableCell>
                           <TableCell>{getFormattedDate(item, reportData.title.includes('Paga') ? 'paid-expenses' : reportData.title.includes('Recebida') ? 'received-revenues' : 'other')}</TableCell>
