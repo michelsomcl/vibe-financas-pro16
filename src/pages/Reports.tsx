@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,6 +8,7 @@ import ReportFilters from "@/components/reports/ReportFilters";
 import ReportTable from "@/components/reports/ReportTable";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import * as XLSX from 'xlsx';
 
 export default function Reports() {
   const { payableAccounts, receivableAccounts, categories, loading } = useFinance();
@@ -104,37 +104,51 @@ export default function Reports() {
   };
 
   const handleSave = () => {
-    if (printRef.current) {
-      const printContent = printRef.current.innerHTML;
-      const blob = new Blob([`
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <title>${reportData.title}</title>
-          <style>
-            body { font-family: Arial, sans-serif; margin: 20px; }
-            table { border-collapse: collapse; width: 100%; }
-            th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-            th { background-color: #f2f2f2; }
-            .header { text-align: center; margin-bottom: 20px; }
-            .total { font-weight: bold; background-color: #f9f9f9; }
-          </style>
-        </head>
-        <body>
-          ${printContent}
-        </body>
-        </html>
-      `], { type: 'text/html' });
-      
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${reportData.title.replace(/\s+/g, '_')}_${format(new Date(), 'yyyy-MM-dd')}.html`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
-    }
+    // Preparar dados para Excel
+    const excelData = [
+      [reportData.title],
+      [`Período: ${reportData.period}`],
+      [`Gerado em: ${format(new Date(), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}`],
+      [], // linha vazia
+      ['Categoria', 'Quantidade', 'Total']
+    ];
+
+    // Adicionar dados das categorias
+    reportData.data.forEach(category => {
+      excelData.push([
+        category.categoryName,
+        category.count,
+        category.total
+      ]);
+    });
+
+    // Adicionar total geral
+    excelData.push([
+      'TOTAL GERAL',
+      reportData.data.reduce((sum, cat) => sum + cat.count, 0),
+      reportData.grandTotal
+    ]);
+
+    // Criar workbook e worksheet
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.aoa_to_sheet(excelData);
+
+    // Aplicar formatação
+    const range = XLSX.utils.decode_range(ws['!ref'] || 'A1');
+    
+    // Definir larguras das colunas
+    ws['!cols'] = [
+      { width: 30 }, // Categoria
+      { width: 15 }, // Quantidade
+      { width: 20 }  // Total
+    ];
+
+    // Adicionar worksheet ao workbook
+    XLSX.utils.book_append_sheet(wb, ws, 'Relatório');
+
+    // Salvar arquivo
+    const fileName = `${reportData.title.replace(/\s+/g, '_')}_${format(new Date(), 'yyyy-MM-dd')}.xls`;
+    XLSX.writeFile(wb, fileName);
   };
 
   if (loading) {
