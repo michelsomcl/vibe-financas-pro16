@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar, FileDown, Printer, FileText } from "lucide-react";
+import { Calendar, FileDown, Printer, FileText, FileExcel } from "lucide-react";
 import { useFinance } from "@/contexts/FinanceContext";
 import { formatCurrency } from "@/utils/formatCurrency";
 import ReportFilters from "@/components/reports/ReportFilters";
@@ -230,13 +230,18 @@ export default function Reports() {
             <Printer className="h-4 w-4" />
             Imprimir
           </Button>
-          <Button onClick={handlePrintPdf} variant="outline" className="flex items-center gap-2">
+          <Button 
+            onClick={handlePrintPdf} 
+            variant="outline" 
+            className="flex items-center gap-2"
+            disabled={showDetailed}
+          >
             <FileText className="h-4 w-4" />
             PDF
           </Button>
           <Button onClick={handleSave} variant="outline" className="flex items-center gap-2">
-            <FileDown className="h-4 w-4" />
-            Salvar
+            <FileExcel className="h-4 w-4" />
+            Excel
           </Button>
         </div>
       </div>
