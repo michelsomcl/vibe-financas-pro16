@@ -24,8 +24,8 @@ export const usePdfGeneration = () => {
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = pdf.internal.pageSize.getHeight();
       
-      // Margens menores para aproveitar melhor a página
-      const margin = 5;
+      // Margens para aproveitar melhor a página
+      const margin = 10;
       const availableWidth = pdfWidth - (margin * 2);
       const availableHeight = pdfHeight - (margin * 2);
       
@@ -38,65 +38,58 @@ export const usePdfGeneration = () => {
       const finalWidth = availableWidth;
       const finalHeight = imgHeight * ratio;
       
-      // Posicionar com margem mínima
+      // Posicionar com margem
       const x = margin;
       const y = margin;
       
-      // Se a imagem for muito alta, dividir em páginas
+      // Se a imagem for muito alta, dividir em páginas de forma mais inteligente
       if (finalHeight > availableHeight) {
-        let position = 0;
-        const pageContentHeight = availableHeight;
+        let currentY = 0;
+        let pageCount = 0;
         
-        while (position < finalHeight) {
-          if (position > 0) {
+        // Calcular quantas páginas serão necessárias
+        const totalPages = Math.ceil(finalHeight / availableHeight);
+        
+        for (let page = 0; page < totalPages; page++) {
+          if (page > 0) {
             pdf.addPage();
           }
           
-          // Calcular a altura da imagem que cabe na página atual
-          const remainingHeight = finalHeight - position;
-          const currentPageHeight = Math.min(pageContentHeight, remainingHeight);
+          // Calcular a altura da seção que cabe nesta página
+          const remainingHeight = finalHeight - currentY;
+          const currentPageHeight = Math.min(availableHeight, remainingHeight);
           
-          // Calcular qual parte da imagem original mostrar
-          const sourceY = (position / finalHeight) * imgHeight;
+          // Calcular a posição Y no canvas original
+          const sourceY = (currentY / finalHeight) * imgHeight;
           const sourceHeight = (currentPageHeight / finalHeight) * imgHeight;
           
-          // Criar um canvas temporário com apenas a parte da imagem para esta página
-          const tempCanvas = document.createElement('canvas');
-          const tempCtx = tempCanvas.getContext('2d');
-          tempCanvas.width = imgWidth;
-          tempCanvas.height = sourceHeight;
-          
-          const img = new Image();
-          img.onload = () => {
-            tempCtx?.drawImage(img, 0, sourceY, imgWidth, sourceHeight, 0, 0, imgWidth, sourceHeight);
-            const tempImgData = tempCanvas.toDataURL('image/png');
-            
-            pdf.addImage(
-              tempImgData,
-              'PNG',
-              x,
-              y,
-              finalWidth,
-              currentPageHeight,
-              undefined,
-              'FAST'
-            );
-          };
-          img.src = imgData;
-          
-          // Para a implementação síncrona, usar a abordagem anterior mas melhorada
+          // Adicionar a imagem com offset negativo para mostrar a parte correta
           pdf.addImage(
             imgData,
             'PNG',
             x,
-            y - position,
+            y - (currentY * ratio),
             finalWidth,
             finalHeight,
             undefined,
             'FAST'
           );
           
-          position += pageContentHeight;
+          // Para páginas intermediárias, adicionar uma máscara branca para cobrir o conteúdo
+          // que não deveria aparecer nesta página
+          if (page < totalPages - 1) {
+            // Cobrir a parte de baixo
+            pdf.setFillColor(255, 255, 255);
+            pdf.rect(0, y + currentPageHeight, pdfWidth, pdfHeight - (y + currentPageHeight), 'F');
+          }
+          
+          if (page > 0) {
+            // Cobrir a parte de cima
+            pdf.setFillColor(255, 255, 255);
+            pdf.rect(0, 0, pdfWidth, y, 'F');
+          }
+          
+          currentY += currentPageHeight;
         }
       } else {
         // Se cabe em uma página, centralizar verticalmente
