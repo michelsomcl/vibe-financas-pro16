@@ -1,8 +1,7 @@
-
 import React, { useState, useMemo, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar, FileDown, Printer } from "lucide-react";
+import { Calendar, FileDown, Printer, FileText } from "lucide-react";
 import { useFinance } from "@/contexts/FinanceContext";
 import { formatCurrency } from "@/utils/formatCurrency";
 import ReportFilters from "@/components/reports/ReportFilters";
@@ -10,6 +9,7 @@ import ReportTable from "@/components/reports/ReportTable";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import * as XLSX from 'xlsx';
+import { usePdfGeneration } from "@/hooks/usePdfGeneration";
 
 export default function Reports() {
   const { payableAccounts, receivableAccounts, categories, loading } = useFinance();
@@ -17,6 +17,7 @@ export default function Reports() {
   const [activeReport, setActiveReport] = useState<'unpaid-expenses' | 'paid-expenses' | 'unreceived-revenues' | 'received-revenues'>('unpaid-expenses');
   const [showDetailed, setShowDetailed] = useState(false);
   const printRef = useRef<HTMLDivElement>(null);
+  const { generatePdf } = usePdfGeneration();
 
   const expenseCategories = categories.filter(cat => cat.type === 'despesa');
   const revenueCategories = categories.filter(cat => cat.type === 'receita');
@@ -102,6 +103,18 @@ export default function Reports() {
       window.print();
       document.body.innerHTML = originalContent;
       window.location.reload();
+    }
+  };
+
+  const handlePrintPdf = async () => {
+    if (printRef.current) {
+      try {
+        const fileName = `${reportData.title.replace(/\s+/g, '_')}_${showDetailed ? 'Detalhado_' : ''}${format(new Date(), 'yyyy-MM-dd')}.pdf`;
+        await generatePdf(printRef.current, fileName);
+      } catch (error) {
+        console.error('Erro ao gerar PDF:', error);
+        // Aqui você poderia adicionar uma notificação de erro para o usuário
+      }
     }
   };
 
@@ -216,6 +229,10 @@ export default function Reports() {
           <Button onClick={handlePrint} variant="outline" className="flex items-center gap-2">
             <Printer className="h-4 w-4" />
             Imprimir
+          </Button>
+          <Button onClick={handlePrintPdf} variant="outline" className="flex items-center gap-2">
+            <FileText className="h-4 w-4" />
+            PDF
           </Button>
           <Button onClick={handleSave} variant="outline" className="flex items-center gap-2">
             <FileDown className="h-4 w-4" />
