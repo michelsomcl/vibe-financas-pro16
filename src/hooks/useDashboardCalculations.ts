@@ -2,7 +2,12 @@
 import { useDashboardData } from "./useDashboardData";
 import { isAfter } from "date-fns";
 
-export const useDashboardCalculations = () => {
+interface DashboardFilters {
+  dateRange?: { from?: Date; to?: Date };
+  categoryIds?: string[];
+}
+
+export const useDashboardCalculations = (filters?: DashboardFilters) => {
   const {
     currentMonthPayables,
     currentMonthReceivables,
@@ -11,9 +16,9 @@ export const useDashboardCalculations = () => {
     monthEnd,
     payableAccounts,
     receivableAccounts
-  } = useDashboardData();
+  } = useDashboardData(filters);
 
-  // Calcular totais das contas pagas no mês atual (usando data de pagamento)
+  // Calcular totais das contas pagas no período (usando data de pagamento)
   const paidExpenses = payableAccounts
     .filter(p => p.isPaid && p.paidDate)
     .filter(p => {
@@ -30,7 +35,7 @@ export const useDashboardCalculations = () => {
     })
     .reduce((sum, r) => sum + r.value, 0);
 
-  // Calcular totais das contas não pagas com vencimento no mês atual
+  // Calcular totais das contas não pagas com vencimento no período
   const unpaidExpenses = payableAccounts
     .filter(p => !p.isPaid)
     .filter(p => {
@@ -63,7 +68,7 @@ export const useDashboardCalculations = () => {
   const balancePaid = totalReceivedRevenues - totalPaidExpenses;
   const balanceUnpaid = unreceiveredRevenues - unpaidExpenses;
 
-  // Contas vencidas
+  // Contas vencidas (filtradas por categoria se especificado)
   const overduePayables = payableAccounts.filter(p => !p.isPaid && isAfter(new Date(), new Date(p.dueDate))).reduce((sum, p) => sum + p.value, 0);
   const overdueReceivables = receivableAccounts.filter(r => !r.isReceived && isAfter(new Date(), new Date(r.dueDate))).reduce((sum, r) => sum + r.value, 0);
 

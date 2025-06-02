@@ -29,7 +29,7 @@ export function DashboardCards({
       <Card className="border-l-4 border-l-red-500">
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-medium text-gray-600">
-            Despesas Pagas (Mês)
+            Despesas Pagas
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -42,7 +42,7 @@ export function DashboardCards({
       <Card className="border-l-4 border-l-orange-500">
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-medium text-gray-600">
-            Despesas a Pagar (Mês)
+            Despesas a Pagar
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -55,7 +55,7 @@ export function DashboardCards({
       <Card className="border-l-4 border-l-green-500">
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-medium text-gray-600">
-            Receitas Recebidas (Mês)
+            Receitas Recebidas
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -68,7 +68,7 @@ export function DashboardCards({
       <Card className="border-l-4 border-l-blue-500">
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-medium text-gray-600">
-            Receitas a Receber (Mês)
+            Receitas a Receber
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -81,7 +81,7 @@ export function DashboardCards({
       <Card className="border-l-4 border-l-primary">
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-medium text-gray-600">
-            Saldo Realizado (Mês)
+            Saldo Realizado
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -94,7 +94,7 @@ export function DashboardCards({
       <Card className="border-l-4 border-l-gray-500">
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-medium text-gray-600">
-            Saldo a Realizar (Mês)
+            Saldo a Realizar
           </CardTitle>
         </CardHeader>
         <CardContent>
