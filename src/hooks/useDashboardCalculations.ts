@@ -15,7 +15,8 @@ export const useDashboardCalculations = (filters?: DashboardFilters) => {
     monthStart,
     monthEnd,
     payableAccounts,
-    receivableAccounts
+    receivableAccounts,
+    hasDateFilter
   } = useDashboardData(filters);
 
   // Calcular totais das contas pagas no período (usando data de pagamento)
@@ -36,19 +37,32 @@ export const useDashboardCalculations = (filters?: DashboardFilters) => {
     .reduce((sum, r) => sum + r.value, 0);
 
   // Calcular totais das contas não pagas com vencimento no período
+  // Se não há filtro de data, incluir TODOS os lançamentos futuros (parcelados/recorrentes)
   const unpaidExpenses = payableAccounts
     .filter(p => !p.isPaid)
     .filter(p => {
-      const dueDate = new Date(p.dueDate);
-      return dueDate >= monthStart && dueDate <= monthEnd;
+      if (!hasDateFilter) {
+        // Sem filtro de data: incluir todos os lançamentos não pagos
+        return true;
+      } else {
+        // Com filtro de data: usar o período especificado
+        const dueDate = new Date(p.dueDate);
+        return dueDate >= monthStart && dueDate <= monthEnd;
+      }
     })
     .reduce((sum, p) => sum + p.value, 0);
 
   const unreceiveredRevenues = receivableAccounts
     .filter(r => !r.isReceived)
     .filter(r => {
-      const dueDate = new Date(r.dueDate);
-      return dueDate >= monthStart && dueDate <= monthEnd;
+      if (!hasDateFilter) {
+        // Sem filtro de data: incluir todos os lançamentos não recebidos
+        return true;
+      } else {
+        // Com filtro de data: usar o período especificado
+        const dueDate = new Date(r.dueDate);
+        return dueDate >= monthStart && dueDate <= monthEnd;
+      }
     })
     .reduce((sum, r) => sum + r.value, 0);
 
@@ -68,9 +82,15 @@ export const useDashboardCalculations = (filters?: DashboardFilters) => {
   const balancePaid = totalReceivedRevenues - totalPaidExpenses;
   const balanceUnpaid = unreceiveredRevenues - unpaidExpenses;
 
-  // Contas vencidas (filtradas por categoria se especificado)
-  const overduePayables = payableAccounts.filter(p => !p.isPaid && isAfter(new Date(), new Date(p.dueDate))).reduce((sum, p) => sum + p.value, 0);
-  const overdueReceivables = receivableAccounts.filter(r => !r.isReceived && isAfter(new Date(), new Date(r.dueDate))).reduce((sum, r) => sum + r.value, 0);
+  // Contas vencidas (sempre considerar data atual, independente dos filtros)
+  const today = new Date();
+  const overduePayables = payableAccounts
+    .filter(p => !p.isPaid && isAfter(today, new Date(p.dueDate)))
+    .reduce((sum, p) => sum + p.value, 0);
+    
+  const overdueReceivables = receivableAccounts
+    .filter(r => !r.isReceived && isAfter(today, new Date(r.dueDate)))
+    .reduce((sum, r) => sum + r.value, 0);
 
   return {
     totalPaidExpenses,

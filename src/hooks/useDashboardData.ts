@@ -11,8 +11,11 @@ export const useDashboardData = (filters?: DashboardFilters) => {
   const { payableAccounts, receivableAccounts, transactions, categories } = useFinance();
   
   const currentMonth = new Date();
-  const monthStart = filters?.dateRange?.from || startOfMonth(currentMonth);
-  const monthEnd = filters?.dateRange?.to || endOfMonth(currentMonth);
+  const hasDateFilter = filters?.dateRange?.from || filters?.dateRange?.to;
+  
+  // Se não há filtro de data, usar período amplo para incluir lançamentos futuros
+  const monthStart = filters?.dateRange?.from || (hasDateFilter ? startOfMonth(currentMonth) : new Date(2020, 0, 1));
+  const monthEnd = filters?.dateRange?.to || (hasDateFilter ? endOfMonth(currentMonth) : new Date(2030, 11, 31));
 
   // Filtrar por categorias se especificado
   const filterByCategory = (items: any[]) => {
@@ -63,6 +66,7 @@ export const useDashboardData = (filters?: DashboardFilters) => {
     monthEnd,
     payableAccounts: filterByCategory(payableAccounts),
     receivableAccounts: filterByCategory(receivableAccounts),
-    categories
+    categories,
+    hasDateFilter
   };
 };
