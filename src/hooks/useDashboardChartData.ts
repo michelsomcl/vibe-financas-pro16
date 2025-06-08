@@ -4,7 +4,7 @@ import { useDashboardData } from "./useDashboardData";
 export const useDashboardChartData = () => {
   const { currentMonthTransactions, categories } = useDashboardData();
 
-  // Dados para gráficos (usar todos os lançamentos do mês para análise por categoria)
+  // Dados para gráficos usando TODOS os lançamentos do período
   const expensesByCategory = categories
     .filter(c => c.type === 'despesa')
     .map(cat => {

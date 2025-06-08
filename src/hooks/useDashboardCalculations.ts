@@ -9,8 +9,6 @@ interface DashboardFilters {
 
 export const useDashboardCalculations = (filters?: DashboardFilters) => {
   const {
-    currentMonthPayables,
-    currentMonthReceivables,
     currentMonthTransactions,
     monthStart,
     monthEnd,
@@ -19,22 +17,14 @@ export const useDashboardCalculations = (filters?: DashboardFilters) => {
     hasDateFilter
   } = useDashboardData(filters);
 
-  // Calcular totais das contas pagas no período (usando data de pagamento)
-  const paidExpenses = payableAccounts
-    .filter(p => p.isPaid && p.paidDate)
-    .filter(p => {
-      const paidDate = new Date(p.paidDate);
-      return paidDate >= monthStart && paidDate <= monthEnd;
-    })
-    .reduce((sum, p) => sum + p.value, 0);
+  // Calcular TODOS os lançamentos do período (incluindo os de origem payable/receivable)
+  const paidExpenses = currentMonthTransactions
+    .filter(t => t.type === 'despesa')
+    .reduce((sum, t) => sum + t.value, 0);
 
-  const receivedRevenues = receivableAccounts
-    .filter(r => r.isReceived && r.receivedDate)
-    .filter(r => {
-      const receivedDate = new Date(r.receivedDate);
-      return receivedDate >= monthStart && receivedDate <= monthEnd;
-    })
-    .reduce((sum, r) => sum + r.value, 0);
+  const receivedRevenues = currentMonthTransactions
+    .filter(t => t.type === 'receita')
+    .reduce((sum, t) => sum + t.value, 0);
 
   // Calcular totais das contas não pagas com vencimento no período
   // Se não há filtro de data, incluir TODOS os lançamentos futuros (parcelados/recorrentes)
@@ -66,18 +56,9 @@ export const useDashboardCalculations = (filters?: DashboardFilters) => {
     })
     .reduce((sum, r) => sum + r.value, 0);
 
-  // Calcular apenas lançamentos manuais (não vindos de contas a pagar/receber)
-  const manualExpenses = currentMonthTransactions
-    .filter(t => t.type === 'despesa' && t.sourceType === 'manual')
-    .reduce((sum, t) => sum + t.value, 0);
-
-  const manualRevenues = currentMonthTransactions
-    .filter(t => t.type === 'receita' && t.sourceType === 'manual')
-    .reduce((sum, t) => sum + t.value, 0);
-
-  // Totais finais (sem duplicação)
-  const totalPaidExpenses = paidExpenses + manualExpenses;
-  const totalReceivedRevenues = receivedRevenues + manualRevenues;
+  // Totais finais usando os lançamentos da tela "Lançamentos"
+  const totalPaidExpenses = paidExpenses;
+  const totalReceivedRevenues = receivedRevenues;
 
   const balancePaid = totalReceivedRevenues - totalPaidExpenses;
   const balanceUnpaid = unreceiveredRevenues - unpaidExpenses;
