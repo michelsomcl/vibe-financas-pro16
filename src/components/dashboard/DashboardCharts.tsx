@@ -33,6 +33,21 @@ export function DashboardCharts({
     },
   }), {});
 
+  // Função customizada para o tooltip
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="bg-white p-3 border rounded shadow-lg">
+          <p className="font-medium">{`Categoria: ${label}`}</p>
+          <p className="text-blue-600">
+            {`Valor: ${formatCurrency(payload[0].value)}`}
+          </p>
+        </div>
+      );
+    }
+    return null;
+  };
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <Card>
@@ -43,40 +58,35 @@ export function DashboardCharts({
         </CardHeader>
         <CardContent>
           {expensesByCategory.length > 0 ? (
-            <ChartContainer
-              config={expensesChartConfig}
-              className="min-h-[400px] w-full"
-            >
-              <BarChart
-                data={expensesByCategory}
-                layout="horizontal"
-                margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-              >
-                <XAxis 
-                  type="number" 
-                  tickFormatter={(value) => formatCurrency(value)}
-                  fontSize={12}
-                />
-                <YAxis 
-                  type="category" 
-                  dataKey="name" 
-                  width={150}
-                  fontSize={12}
-                  tick={{ textAnchor: 'end' }}
-                />
-                <ChartTooltip 
-                  cursor={false} 
-                  content={<ChartTooltipContent />}
-                  formatter={(value: any) => [formatCurrency(Number(value)), 'Valor']}
-                  labelFormatter={(label) => `Categoria: ${label}`}
-                />
-                <Bar dataKey="value" radius={[0, 4, 4, 0]}>
-                  {expensesByCategory.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ChartContainer>
+            <div className="h-[400px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={expensesByCategory}
+                  layout="horizontal"
+                  margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                >
+                  <XAxis 
+                    type="number" 
+                    tickFormatter={(value) => formatCurrency(value)}
+                    fontSize={12}
+                    domain={['dataMin', 'dataMax']}
+                  />
+                  <YAxis 
+                    type="category" 
+                    dataKey="name" 
+                    width={150}
+                    fontSize={12}
+                    tick={{ textAnchor: 'end' }}
+                  />
+                  <ChartTooltip content={<CustomTooltip />} />
+                  <Bar dataKey="value" radius={[0, 4, 4, 0]}>
+                    {expensesByCategory.map((entry, index) => (
+                      <Cell key={`expense-cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
           ) : (
             <div className="h-64 flex items-center justify-center text-gray-500">
               Nenhuma despesa encontrada no período
@@ -93,40 +103,35 @@ export function DashboardCharts({
         </CardHeader>
         <CardContent>
           {revenuesByCategory.length > 0 ? (
-            <ChartContainer
-              config={revenuesChartConfig}
-              className="min-h-[400px] w-full"
-            >
-              <BarChart
-                data={revenuesByCategory}
-                layout="horizontal"
-                margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-              >
-                <XAxis 
-                  type="number" 
-                  tickFormatter={(value) => formatCurrency(value)}
-                  fontSize={12}
-                />
-                <YAxis 
-                  type="category" 
-                  dataKey="name" 
-                  width={150}
-                  fontSize={12}
-                  tick={{ textAnchor: 'end' }}
-                />
-                <ChartTooltip 
-                  cursor={false} 
-                  content={<ChartTooltipContent />}
-                  formatter={(value: any) => [formatCurrency(Number(value)), 'Valor']}
-                  labelFormatter={(label) => `Categoria: ${label}`}
-                />
-                <Bar dataKey="value" radius={[0, 4, 4, 0]}>
-                  {revenuesByCategory.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ChartContainer>
+            <div className="h-[400px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={revenuesByCategory}
+                  layout="horizontal"
+                  margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                >
+                  <XAxis 
+                    type="number" 
+                    tickFormatter={(value) => formatCurrency(value)}
+                    fontSize={12}
+                    domain={['dataMin', 'dataMax']}
+                  />
+                  <YAxis 
+                    type="category" 
+                    dataKey="name" 
+                    width={150}
+                    fontSize={12}
+                    tick={{ textAnchor: 'end' }}
+                  />
+                  <ChartTooltip content={<CustomTooltip />} />
+                  <Bar dataKey="value" radius={[0, 4, 4, 0]}>
+                    {revenuesByCategory.map((entry, index) => (
+                      <Cell key={`revenue-cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
           ) : (
             <div className="h-64 flex items-center justify-center text-gray-500">
               Nenhuma receita encontrada no período
