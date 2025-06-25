@@ -1,7 +1,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Cell } from "recharts";
 
 const COLORS = ['#800491', '#FF8042', '#FFBB28', '#8884d8', '#82ca9d', '#ffc658', '#ff7c7c', '#8dd1e1', '#d084d0', '#ffb347'];
 
@@ -70,11 +70,11 @@ export function DashboardCharts({
                   formatter={(value: any) => [formatCurrency(Number(value)), 'Valor']}
                   labelFormatter={(label) => `Categoria: ${label}`}
                 />
-                <Bar 
-                  dataKey="value" 
-                  fill={(entry: any, index: number) => COLORS[index % COLORS.length]}
-                  radius={[0, 4, 4, 0]}
-                />
+                <Bar dataKey="value" radius={[0, 4, 4, 0]}>
+                  {expensesByCategory.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Bar>
               </BarChart>
             </ChartContainer>
           ) : (
@@ -120,11 +120,11 @@ export function DashboardCharts({
                   formatter={(value: any) => [formatCurrency(Number(value)), 'Valor']}
                   labelFormatter={(label) => `Categoria: ${label}`}
                 />
-                <Bar 
-                  dataKey="value" 
-                  fill={(entry: any, index: number) => COLORS[index % COLORS.length]}
-                  radius={[0, 4, 4, 0]}
-                />
+                <Bar dataKey="value" radius={[0, 4, 4, 0]}>
+                  {revenuesByCategory.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Bar>
               </BarChart>
             </ChartContainer>
           ) : (
