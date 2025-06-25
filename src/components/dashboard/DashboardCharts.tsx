@@ -1,7 +1,6 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Cell } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Cell, Tooltip } from "recharts";
 
 const COLORS = ['#800491', '#FF8042', '#FFBB28', '#8884d8', '#82ca9d', '#ffc658', '#ff7c7c', '#8dd1e1', '#d084d0', '#ffb347'];
 
@@ -16,23 +15,6 @@ export function DashboardCharts({
   revenuesByCategory,
   formatCurrency
 }: DashboardChartsProps) {
-  // Configuração dos gráficos
-  const expensesChartConfig = expensesByCategory.reduce((config, item, index) => ({
-    ...config,
-    [item.name]: {
-      label: item.name,
-      color: COLORS[index % COLORS.length],
-    },
-  }), {});
-
-  const revenuesChartConfig = revenuesByCategory.reduce((config, item, index) => ({
-    ...config,
-    [item.name]: {
-      label: item.name,
-      color: COLORS[index % COLORS.length],
-    },
-  }), {});
-
   // Função customizada para o tooltip
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
@@ -69,7 +51,6 @@ export function DashboardCharts({
                     type="number" 
                     tickFormatter={(value) => formatCurrency(value)}
                     fontSize={12}
-                    domain={['dataMin', 'dataMax']}
                   />
                   <YAxis 
                     type="category" 
@@ -78,7 +59,7 @@ export function DashboardCharts({
                     fontSize={12}
                     tick={{ textAnchor: 'end' }}
                   />
-                  <ChartTooltip content={<CustomTooltip />} />
+                  <Tooltip content={<CustomTooltip />} />
                   <Bar dataKey="value" radius={[0, 4, 4, 0]}>
                     {expensesByCategory.map((entry, index) => (
                       <Cell key={`expense-cell-${index}`} fill={COLORS[index % COLORS.length]} />
@@ -114,7 +95,6 @@ export function DashboardCharts({
                     type="number" 
                     tickFormatter={(value) => formatCurrency(value)}
                     fontSize={12}
-                    domain={['dataMin', 'dataMax']}
                   />
                   <YAxis 
                     type="category" 
@@ -123,7 +103,7 @@ export function DashboardCharts({
                     fontSize={12}
                     tick={{ textAnchor: 'end' }}
                   />
-                  <ChartTooltip content={<CustomTooltip />} />
+                  <Tooltip content={<CustomTooltip />} />
                   <Bar dataKey="value" radius={[0, 4, 4, 0]}>
                     {revenuesByCategory.map((entry, index) => (
                       <Cell key={`revenue-cell-${index}`} fill={COLORS[index % COLORS.length]} />
