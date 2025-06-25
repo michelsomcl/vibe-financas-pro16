@@ -53,7 +53,7 @@ export const useReportExport = () => {
     activeReport: string
   ) => {
     // Preparar dados para Excel
-    const excelData = [
+    const excelData: (string | number)[][] = [
       [reportData.title + (showDetailed ? ' - Detalhado' : '')],
       [`Período: ${reportData.period}`],
       [`Gerado em: ${format(new Date(), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}`],
@@ -103,12 +103,16 @@ export const useReportExport = () => {
     }
 
     // Adicionar total geral
-    excelData.push([
-      'TOTAL GERAL',
-      showDetailed ? '' : reportData.data.reduce((sum, cat) => sum + cat.count, 0),
-      showDetailed ? '' : '',
-      reportData.grandTotal
-    ]);
+    const totalRow: (string | number)[] = ['TOTAL GERAL'];
+    if (!showDetailed) {
+      totalRow.push(reportData.data.reduce((sum, cat) => sum + cat.count, 0));
+      totalRow.push('');
+    } else {
+      totalRow.push('');
+      totalRow.push('');
+    }
+    totalRow.push(reportData.grandTotal);
+    excelData.push(totalRow);
 
     // Criar workbook e worksheet
     const wb = XLSX.utils.book_new();
