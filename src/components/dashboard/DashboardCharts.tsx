@@ -1,7 +1,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from "@/components/ui/chart";
-import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer } from "recharts";
 
 const COLORS = ['#800491', '#FF8042', '#FFBB28', '#8884d8', '#82ca9d', '#ffc658', '#ff7c7c', '#8dd1e1', '#d084d0', '#ffb347'];
 
@@ -45,32 +45,37 @@ export function DashboardCharts({
           {expensesByCategory.length > 0 ? (
             <ChartContainer
               config={expensesChartConfig}
-              className="mx-auto aspect-square max-h-[400px]"
+              className="min-h-[400px] w-full"
             >
-              <PieChart>
+              <BarChart
+                data={expensesByCategory}
+                layout="horizontal"
+                margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+              >
+                <XAxis 
+                  type="number" 
+                  tickFormatter={(value) => formatCurrency(value)}
+                  fontSize={12}
+                />
+                <YAxis 
+                  type="category" 
+                  dataKey="name" 
+                  width={150}
+                  fontSize={12}
+                  tick={{ textAnchor: 'end' }}
+                />
                 <ChartTooltip 
                   cursor={false} 
-                  content={<ChartTooltipContent hideLabel />}
-                  formatter={(value) => [formatCurrency(Number(value)), '']}
+                  content={<ChartTooltipContent />}
+                  formatter={(value: any) => [formatCurrency(Number(value)), 'Valor']}
+                  labelFormatter={(label) => `Categoria: ${label}`}
                 />
-                <Pie
-                  data={expensesByCategory}
-                  dataKey="value"
-                  nameKey="name"
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={100}
-                  fill="#8884d8"
-                >
-                  {expensesByCategory.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <ChartLegend
-                  content={<ChartLegendContent nameKey="name" />}
-                  className="flex-wrap gap-2 text-sm"
+                <Bar 
+                  dataKey="value" 
+                  fill={(entry: any, index: number) => COLORS[index % COLORS.length]}
+                  radius={[0, 4, 4, 0]}
                 />
-              </PieChart>
+              </BarChart>
             </ChartContainer>
           ) : (
             <div className="h-64 flex items-center justify-center text-gray-500">
@@ -90,32 +95,37 @@ export function DashboardCharts({
           {revenuesByCategory.length > 0 ? (
             <ChartContainer
               config={revenuesChartConfig}
-              className="mx-auto aspect-square max-h-[400px]"
+              className="min-h-[400px] w-full"
             >
-              <PieChart>
+              <BarChart
+                data={revenuesByCategory}
+                layout="horizontal"
+                margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+              >
+                <XAxis 
+                  type="number" 
+                  tickFormatter={(value) => formatCurrency(value)}
+                  fontSize={12}
+                />
+                <YAxis 
+                  type="category" 
+                  dataKey="name" 
+                  width={150}
+                  fontSize={12}
+                  tick={{ textAnchor: 'end' }}
+                />
                 <ChartTooltip 
                   cursor={false} 
-                  content={<ChartTooltipContent hideLabel />}
-                  formatter={(value) => [formatCurrency(Number(value)), '']}
+                  content={<ChartTooltipContent />}
+                  formatter={(value: any) => [formatCurrency(Number(value)), 'Valor']}
+                  labelFormatter={(label) => `Categoria: ${label}`}
                 />
-                <Pie
-                  data={revenuesByCategory}
-                  dataKey="value"
-                  nameKey="name"
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={100}
-                  fill="#8884d8"
-                >
-                  {revenuesByCategory.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <ChartLegend
-                  content={<ChartLegendContent nameKey="name" />}
-                  className="flex-wrap gap-2 text-sm"
+                <Bar 
+                  dataKey="value" 
+                  fill={(entry: any, index: number) => COLORS[index % COLORS.length]}
+                  radius={[0, 4, 4, 0]}
                 />
-              </PieChart>
+              </BarChart>
             </ChartContainer>
           ) : (
             <div className="h-64 flex items-center justify-center text-gray-500">
