@@ -26,6 +26,12 @@ export default function ReportTable({ reportData, showDetailed = false }: Report
   const { clientsSuppliers } = useFinance();
 
   const getClientSupplierName = (item: any) => {
+    // Para transações, usar client_supplier_id
+    if (item.client_supplier_id) {
+      const clientSupplier = clientsSuppliers.find(cs => cs.id === item.client_supplier_id);
+      return clientSupplier?.name || 'N/A';
+    }
+    // Para contas, usar clientId ou supplierId
     const clientSupplier = clientsSuppliers.find(cs => 
       cs.id === item.clientId || cs.id === item.supplierId
     );
@@ -33,22 +39,66 @@ export default function ReportTable({ reportData, showDetailed = false }: Report
   };
 
   const getFormattedDate = (item: any, activeReport: string) => {
-    if (activeReport === 'paid-expenses' && item.paidDate) {
-      return formatDate(item.paidDate);
-    } else if (activeReport === 'received-revenues' && item.receivedDate) {
-      return formatDate(item.receivedDate);
+    let dateToUse = null;
+    
+    if (activeReport === 'paid-expenses' || activeReport === 'received-revenues') {
+      // Para transações (despesas pagas/receitas recebidas)
+      if (item.payment_date) {
+        dateToUse = item.payment_date;
+      } else if (item.paidDate) {
+        dateToUse = item.paidDate;
+      } else if (item.receivedDate) {
+        dateToUse = item.receivedDate;
+      } else if (item.due_date) {
+        dateToUse = item.due_date;
+      } else if (item.dueDate) {
+        dateToUse = item.dueDate;
+      }
     } else {
-      return formatDate(item.dueDate);
+      // Para contas a pagar/receber
+      if (item.due_date) {
+        dateToUse = item.due_date;
+      } else if (item.dueDate) {
+        dateToUse = item.dueDate;
+      }
+    }
+    
+    // Se não encontrou nenhuma data válida, retornar uma string padrão
+    if (!dateToUse) {
+      return '-';
+    }
+
+    try {
+      return formatDate(dateToUse);
+    } catch (error) {
+      console.error('Erro ao formatar data:', error, 'Item:', item);
+      return '-';
     }
   };
 
   // Função para ordenar itens por data de vencimento
   const sortItemsByDueDate = (items: any[]) => {
     return [...items].sort((a, b) => {
-      const dateA = new Date(a.dueDate);
-      const dateB = new Date(b.dueDate);
+      const getDateForSort = (item: any) => {
+        if (item.due_date) return new Date(item.due_date);
+        if (item.dueDate) return new Date(item.dueDate);
+        if (item.payment_date) return new Date(item.payment_date);
+        return new Date(0); // fallback para data muito antiga
+      };
+      
+      const dateA = getDateForSort(a);
+      const dateB = getDateForSort(b);
       return dateA.getTime() - dateB.getTime();
     });
+  };
+
+  // Determinar o tipo de relatório baseado no título
+  const getReportType = () => {
+    if (reportData.title.includes('Paga')) return 'paid-expenses';
+    if (reportData.title.includes('Recebida')) return 'received-revenues';
+    if (reportData.title.includes('Pagar')) return 'unpaid-expenses';
+    if (reportData.title.includes('Receber')) return 'unreceived-revenues';
+    return 'other';
   };
 
   return (
@@ -91,7 +141,7 @@ export default function ReportTable({ reportData, showDetailed = false }: Report
                       {sortItemsByDueDate(category.items).map((item, itemIndex) => (
                         <TableRow key={itemIndex}>
                           <TableCell>{getClientSupplierName(item)}</TableCell>
-                          <TableCell>{getFormattedDate(item, reportData.title.includes('Paga') ? 'paid-expenses' : reportData.title.includes('Recebida') ? 'received-revenues' : 'other')}</TableCell>
+                          <TableCell>{getFormattedDate(item, getReportType())}</TableCell>
                           <TableCell className="max-w-xs truncate">{item.observations || '-'}</TableCell>
                           <TableCell className="text-right">{formatCurrency(item.value)}</TableCell>
                         </TableRow>
