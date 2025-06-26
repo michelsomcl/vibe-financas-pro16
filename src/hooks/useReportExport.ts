@@ -71,11 +71,11 @@ export const useReportExport = () => {
           const clientSupplierName = item.client?.name || item.supplier?.name || 'N/A';
           let dateToShow = '';
           
-          if (activeReport === 'paid-expenses' && item.paidDate) {
-            dateToShow = format(new Date(item.paidDate), 'dd/MM/yyyy');
-          } else if (activeReport === 'received-revenues' && item.receivedDate) {
-            dateToShow = format(new Date(item.receivedDate), 'dd/MM/yyyy');
+          if (activeReport === 'paid-expenses' || activeReport === 'received-revenues') {
+            // Para transações, usar paymentDate
+            dateToShow = format(new Date(item.paymentDate), 'dd/MM/yyyy');
           } else {
+            // Para contas não pagas/recebidas, usar dueDate
             dateToShow = format(new Date(item.dueDate), 'dd/MM/yyyy');
           }
           

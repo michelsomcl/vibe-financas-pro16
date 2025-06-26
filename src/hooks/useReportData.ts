@@ -25,10 +25,8 @@ export const useReportData = ({ activeReport, dateRange }: UseReportDataProps) =
         title = 'Despesas a Pagar por Categoria';
         break;
       case 'paid-expenses':
-        // Incluir despesas pagas das contas a pagar E lançamentos manuais de despesa
-        const paidExpenses = payableAccounts.filter(p => p.isPaid);
-        const manualExpenses = transactions.filter(t => t.type === 'despesa' && t.source_type === 'manual');
-        data = [...paidExpenses, ...manualExpenses];
+        // Para despesas pagas: usar TODOS os lançamentos de despesa do período
+        data = transactions.filter(t => t.type === 'despesa');
         categoriesData = expenseCategories;
         title = 'Despesas Pagas por Categoria';
         break;
@@ -38,10 +36,8 @@ export const useReportData = ({ activeReport, dateRange }: UseReportDataProps) =
         title = 'Receitas a Receber por Categoria';
         break;
       case 'received-revenues':
-        // Incluir receitas recebidas das contas a receber E lançamentos manuais de receita
-        const receivedRevenues = receivableAccounts.filter(r => r.isReceived);
-        const manualRevenues = transactions.filter(t => t.type === 'receita' && t.source_type === 'manual');
-        data = [...receivedRevenues, ...manualRevenues];
+        // Para receitas recebidas: usar TODOS os lançamentos de receita do período
+        data = transactions.filter(t => t.type === 'receita');
         categoriesData = revenueCategories;
         title = 'Receitas Recebidas por Categoria';
         break;
@@ -52,23 +48,15 @@ export const useReportData = ({ activeReport, dateRange }: UseReportDataProps) =
       data = data.filter(item => {
         let dateToCheck: Date;
         
-        if (activeReport === 'paid-expenses') {
-          if (item.paidDate) {
-            dateToCheck = new Date(item.paidDate);
-          } else if (item.payment_date) {
-            dateToCheck = new Date(item.payment_date);
-          } else {
-            dateToCheck = new Date(item.dueDate);
-          }
-        } else if (activeReport === 'received-revenues') {
-          if (item.receivedDate) {
-            dateToCheck = new Date(item.receivedDate);
-          } else if (item.payment_date) {
-            dateToCheck = new Date(item.payment_date);
+        if (activeReport === 'paid-expenses' || activeReport === 'received-revenues') {
+          // Para transações, usar paymentDate
+          if (item.paymentDate) {
+            dateToCheck = new Date(item.paymentDate);
           } else {
             dateToCheck = new Date(item.dueDate);
           }
         } else {
+          // Para contas não pagas/recebidas, usar dueDate
           dateToCheck = new Date(item.dueDate);
         }
 
@@ -81,11 +69,11 @@ export const useReportData = ({ activeReport, dateRange }: UseReportDataProps) =
     // Agrupar por categoria
     const groupedData = categoriesData.map(category => {
       const categoryItems = data.filter(item => {
-        // Para lançamentos manuais, usar category_id
-        if (item.category_id) {
-          return item.category_id === category.id;
+        // Para transações, usar categoryId
+        if (item.categoryId) {
+          return item.categoryId === category.id;
         }
-        // Para contas a pagar/receber, usar categoryId
+        // Para contas a pagar/receber, também usar categoryId
         return item.categoryId === category.id;
       });
       
