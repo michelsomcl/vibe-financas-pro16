@@ -26,12 +26,28 @@ export default function ReportTable({ reportData, showDetailed = false }: Report
   const { clientsSuppliers } = useFinance();
 
   const getClientSupplierName = (item: any) => {
+    console.log('Item para buscar cliente/fornecedor:', item);
+    
     // Para transações, usar client_supplier_id
     if (item.client_supplier_id) {
       const clientSupplier = clientsSuppliers.find(cs => cs.id === item.client_supplier_id);
+      console.log('Cliente/fornecedor encontrado:', clientSupplier);
       return clientSupplier?.name || 'N/A';
     }
-    // Para contas, usar clientId ou supplierId
+    
+    // Para contas a pagar, usar supplier_id
+    if (item.supplier_id) {
+      const clientSupplier = clientsSuppliers.find(cs => cs.id === item.supplier_id);
+      return clientSupplier?.name || 'N/A';
+    }
+    
+    // Para contas a receber, usar client_id
+    if (item.client_id) {
+      const clientSupplier = clientsSuppliers.find(cs => cs.id === item.client_id);
+      return clientSupplier?.name || 'N/A';
+    }
+    
+    // Fallback para propriedades alternativas
     const clientSupplier = clientsSuppliers.find(cs => 
       cs.id === item.clientId || cs.id === item.supplierId
     );
@@ -39,12 +55,16 @@ export default function ReportTable({ reportData, showDetailed = false }: Report
   };
 
   const getFormattedDate = (item: any, activeReport: string) => {
+    console.log('Item para buscar data:', item, 'Tipo de relatório:', activeReport);
+    
     let dateToUse = null;
     
     if (activeReport === 'paid-expenses' || activeReport === 'received-revenues') {
       // Para transações (despesas pagas/receitas recebidas)
       if (item.payment_date) {
         dateToUse = item.payment_date;
+      } else if (item.paymentDate) {
+        dateToUse = item.paymentDate;
       } else if (item.paidDate) {
         dateToUse = item.paidDate;
       } else if (item.receivedDate) {
@@ -63,6 +83,8 @@ export default function ReportTable({ reportData, showDetailed = false }: Report
       }
     }
     
+    console.log('Data encontrada:', dateToUse);
+    
     // Se não encontrou nenhuma data válida, retornar uma string padrão
     if (!dateToUse) {
       return '-';
@@ -80,9 +102,10 @@ export default function ReportTable({ reportData, showDetailed = false }: Report
   const sortItemsByDueDate = (items: any[]) => {
     return [...items].sort((a, b) => {
       const getDateForSort = (item: any) => {
+        if (item.payment_date) return new Date(item.payment_date);
+        if (item.paymentDate) return new Date(item.paymentDate);
         if (item.due_date) return new Date(item.due_date);
         if (item.dueDate) return new Date(item.dueDate);
-        if (item.payment_date) return new Date(item.payment_date);
         return new Date(0); // fallback para data muito antiga
       };
       
