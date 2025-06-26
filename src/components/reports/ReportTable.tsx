@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatCurrency } from "@/utils/formatCurrency";
@@ -28,7 +27,14 @@ export default function ReportTable({ reportData, showDetailed = false }: Report
   const getClientSupplierName = (item: any) => {
     console.log('Item para buscar cliente/fornecedor:', item);
     
-    // Para transações, usar client_supplier_id
+    // Para transações, primeiro tentar clientSupplierId (camelCase)
+    if (item.clientSupplierId) {
+      const clientSupplier = clientsSuppliers.find(cs => cs.id === item.clientSupplierId);
+      console.log('Cliente/fornecedor encontrado:', clientSupplier);
+      return clientSupplier?.name || 'N/A';
+    }
+    
+    // Para transações, usar client_supplier_id (snake_case)
     if (item.client_supplier_id) {
       const clientSupplier = clientsSuppliers.find(cs => cs.id === item.client_supplier_id);
       console.log('Cliente/fornecedor encontrado:', clientSupplier);
