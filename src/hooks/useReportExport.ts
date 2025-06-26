@@ -83,11 +83,11 @@ export const useReportExport = () => {
             clientSupplierName,
             dateToShow,
             item.observations || '',
-            item.value
+            item.value.toString()
           ]);
         });
         
-        excelData.push([`Subtotal - ${category.categoryName}`, '', '', category.total]);
+        excelData.push([`Subtotal - ${category.categoryName}`, '', '', category.total.toString()]);
       });
     } else {
       // Formato resumido
@@ -96,8 +96,8 @@ export const useReportExport = () => {
       reportData.data.forEach(category => {
         excelData.push([
           category.categoryName,
-          category.count,
-          category.total
+          category.count.toString(),
+          category.total.toString()
         ]);
       });
     }
@@ -105,9 +105,9 @@ export const useReportExport = () => {
     // Adicionar total geral
     excelData.push([
       'TOTAL GERAL',
-      showDetailed ? '' : reportData.data.reduce((sum, cat) => sum + cat.count, 0),
+      showDetailed ? '' : reportData.data.reduce((sum, cat) => sum + cat.count, 0).toString(),
       showDetailed ? '' : '',
-      reportData.grandTotal
+      reportData.grandTotal.toString()
     ]);
 
     // Criar workbook e worksheet

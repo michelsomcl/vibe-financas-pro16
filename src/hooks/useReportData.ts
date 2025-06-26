@@ -8,7 +8,7 @@ interface UseReportDataProps {
 }
 
 export const useReportData = ({ activeReport, dateRange }: UseReportDataProps) => {
-  const { payableAccounts, receivableAccounts, categories } = useFinance();
+  const { payableAccounts, receivableAccounts, transactions, categories } = useFinance();
 
   const expenseCategories = categories.filter(cat => cat.type === 'despesa');
   const revenueCategories = categories.filter(cat => cat.type === 'receita');
@@ -25,7 +25,10 @@ export const useReportData = ({ activeReport, dateRange }: UseReportDataProps) =
         title = 'Despesas a Pagar por Categoria';
         break;
       case 'paid-expenses':
-        data = payableAccounts.filter(p => p.isPaid);
+        // Incluir despesas pagas das contas a pagar E lançamentos manuais de despesa
+        const paidExpenses = payableAccounts.filter(p => p.isPaid);
+        const manualExpenses = transactions.filter(t => t.type === 'despesa' && t.source_type === 'manual');
+        data = [...paidExpenses, ...manualExpenses];
         categoriesData = expenseCategories;
         title = 'Despesas Pagas por Categoria';
         break;
@@ -35,7 +38,10 @@ export const useReportData = ({ activeReport, dateRange }: UseReportDataProps) =
         title = 'Receitas a Receber por Categoria';
         break;
       case 'received-revenues':
-        data = receivableAccounts.filter(r => r.isReceived);
+        // Incluir receitas recebidas das contas a receber E lançamentos manuais de receita
+        const receivedRevenues = receivableAccounts.filter(r => r.isReceived);
+        const manualRevenues = transactions.filter(t => t.type === 'receita' && t.source_type === 'manual');
+        data = [...receivedRevenues, ...manualRevenues];
         categoriesData = revenueCategories;
         title = 'Receitas Recebidas por Categoria';
         break;
@@ -46,10 +52,22 @@ export const useReportData = ({ activeReport, dateRange }: UseReportDataProps) =
       data = data.filter(item => {
         let dateToCheck: Date;
         
-        if (activeReport === 'paid-expenses' && item.paidDate) {
-          dateToCheck = new Date(item.paidDate);
-        } else if (activeReport === 'received-revenues' && item.receivedDate) {
-          dateToCheck = new Date(item.receivedDate);
+        if (activeReport === 'paid-expenses') {
+          if (item.paidDate) {
+            dateToCheck = new Date(item.paidDate);
+          } else if (item.payment_date) {
+            dateToCheck = new Date(item.payment_date);
+          } else {
+            dateToCheck = new Date(item.dueDate);
+          }
+        } else if (activeReport === 'received-revenues') {
+          if (item.receivedDate) {
+            dateToCheck = new Date(item.receivedDate);
+          } else if (item.payment_date) {
+            dateToCheck = new Date(item.payment_date);
+          } else {
+            dateToCheck = new Date(item.dueDate);
+          }
         } else {
           dateToCheck = new Date(item.dueDate);
         }
@@ -62,7 +80,15 @@ export const useReportData = ({ activeReport, dateRange }: UseReportDataProps) =
 
     // Agrupar por categoria
     const groupedData = categoriesData.map(category => {
-      const categoryItems = data.filter(item => item.categoryId === category.id);
+      const categoryItems = data.filter(item => {
+        // Para lançamentos manuais, usar category_id
+        if (item.category_id) {
+          return item.category_id === category.id;
+        }
+        // Para contas a pagar/receber, usar categoryId
+        return item.categoryId === category.id;
+      });
+      
       const total = categoryItems.reduce((sum, item) => sum + item.value, 0);
       
       return {
@@ -83,7 +109,7 @@ export const useReportData = ({ activeReport, dateRange }: UseReportDataProps) =
         ? `${dateRange.from.toLocaleDateString('pt-BR')} - ${dateRange.to.toLocaleDateString('pt-BR')}`
         : 'Total Acumulado'
     };
-  }, [activeReport, payableAccounts, receivableAccounts, expenseCategories, revenueCategories, dateRange]);
+  }, [activeReport, payableAccounts, receivableAccounts, transactions, expenseCategories, revenueCategories, dateRange]);
 
   return reportData;
 };
