@@ -4,6 +4,7 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import * as XLSX from 'xlsx';
 import { usePdfGeneration } from "@/hooks/usePdfGeneration";
+import { useFinance } from "@/contexts/FinanceContext";
 
 interface ReportData {
   title: string;
@@ -19,6 +20,39 @@ interface ReportData {
 
 export const useReportExport = () => {
   const { generatePdf } = usePdfGeneration();
+  const { clientsSuppliers } = useFinance();
+
+  const getClientSupplierNameForExcel = (item: any) => {
+    // Para transações, primeiro tentar clientSupplierId (camelCase)
+    if (item.clientSupplierId) {
+      const clientSupplier = clientsSuppliers.find(cs => cs.id === item.clientSupplierId);
+      return clientSupplier?.name || 'N/A';
+    }
+    
+    // Para transações, usar client_supplier_id (snake_case)
+    if (item.client_supplier_id) {
+      const clientSupplier = clientsSuppliers.find(cs => cs.id === item.client_supplier_id);
+      return clientSupplier?.name || 'N/A';
+    }
+    
+    // Para contas a pagar, usar supplier_id
+    if (item.supplier_id) {
+      const clientSupplier = clientsSuppliers.find(cs => cs.id === item.supplier_id);
+      return clientSupplier?.name || 'N/A';
+    }
+    
+    // Para contas a receber, usar client_id
+    if (item.client_id) {
+      const clientSupplier = clientsSuppliers.find(cs => cs.id === item.client_id);
+      return clientSupplier?.name || 'N/A';
+    }
+    
+    // Fallback para propriedades alternativas
+    const clientSupplier = clientsSuppliers.find(cs => 
+      cs.id === item.clientId || cs.id === item.supplierId
+    );
+    return clientSupplier?.name || 'N/A';
+  };
 
   const handlePrint = useCallback((printRef: React.RefObject<HTMLDivElement>) => {
     if (printRef.current) {
@@ -68,15 +102,31 @@ export const useReportExport = () => {
         excelData.push(['Cliente/Fornecedor', 'Data', 'Observações', 'Valor']);
         
         category.items.forEach(item => {
-          const clientSupplierName = item.client?.name || item.supplier?.name || 'N/A';
+          const clientSupplierName = getClientSupplierNameForExcel(item);
           let dateToShow = '';
           
           if (activeReport === 'paid-expenses' || activeReport === 'received-revenues') {
-            // Para transações, usar paymentDate
-            dateToShow = format(new Date(item.paymentDate), 'dd/MM/yyyy');
+            // Para transações, usar payment_date primeiro
+            if (item.payment_date) {
+              dateToShow = format(new Date(item.payment_date), 'dd/MM/yyyy');
+            } else if (item.paymentDate) {
+              dateToShow = format(new Date(item.paymentDate), 'dd/MM/yyyy');
+            } else if (item.due_date) {
+              dateToShow = format(new Date(item.due_date), 'dd/MM/yyyy');
+            } else if (item.dueDate) {
+              dateToShow = format(new Date(item.dueDate), 'dd/MM/yyyy');
+            } else {
+              dateToShow = '-';
+            }
           } else {
-            // Para contas não pagas/recebidas, usar dueDate
-            dateToShow = format(new Date(item.dueDate), 'dd/MM/yyyy');
+            // Para contas não pagas/recebidas, usar due_date
+            if (item.due_date) {
+              dateToShow = format(new Date(item.due_date), 'dd/MM/yyyy');
+            } else if (item.dueDate) {
+              dateToShow = format(new Date(item.dueDate), 'dd/MM/yyyy');
+            } else {
+              dateToShow = '-';
+            }
           }
           
           excelData.push([
@@ -136,7 +186,7 @@ export const useReportExport = () => {
     // Salvar arquivo
     const fileName = `${reportData.title.replace(/\s+/g, '_')}_${showDetailed ? 'Detalhado_' : ''}${format(new Date(), 'yyyy-MM-dd')}.xls`;
     XLSX.writeFile(wb, fileName);
-  }, []);
+  }, [clientsSuppliers]);
 
   return {
     handlePrint,
