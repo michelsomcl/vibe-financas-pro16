@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -344,6 +345,11 @@ export default function TransactionForm({ transaction, onSubmit, onCancel }: Tra
                       selected={field.value}
                       onSelect={field.onChange}
                       initialFocus
+                      className="p-3 pointer-events-auto"
+                      locale={ptBR}
+                      captionLayout="dropdown-buttons"
+                      fromYear={2000}
+                      toYear={2030}
                     />
                   </PopoverContent>
                 </Popover>
